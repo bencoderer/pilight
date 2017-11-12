@@ -125,12 +125,12 @@ static void parseCode(void) {
 }
 
 static void createLow(int s, int e) {
-    //method copied from rev_v3
+    //method based on rev_v3.c
 	int i;
 
 	for(i=s;i<=e;i+=4) {
-		rev5_switch->raw[i]=(AVG_PULSE_LENGTH);
-		rev5_switch->raw[i+1]=(PULSE_MULTIPLIER*AVG_PULSE_LENGTH);
+		rev5_switch->raw[i+1]=(PULSE_MULTIPLIER*AVG_PULSE_LENGTH); //long pulse for rev_v5
+		rev5_switch->raw[i]=(AVG_PULSE_LENGTH);                    //short pause for rev_v5
 		rev5_switch->raw[i+2]=(PULSE_MULTIPLIER*AVG_PULSE_LENGTH);
 		rev5_switch->raw[i+3]=(AVG_PULSE_LENGTH);
 	}
@@ -148,8 +148,8 @@ static void createHigh(int s, int e) {
 }
 
 static void clearCode(void) {
-	//copied from rev_v3.c
-	createHigh(0,3);
+	//based on rev_v3
+	createLow(0,3); //make low by default
 	createLow(4,47);
 }
 
@@ -197,6 +197,8 @@ static void createUnit(int unit) {
 	int length = 0;
 	int i=0, x=0;
 
+	logprintf(LOG_DEBUG, "rev_v5:sending unit value '%d'", unit);
+
 	length = decToBinRev(unit, binary);
 	for(i=0;i<=length;i++) {
 		if(binary[i]==1) {
@@ -221,6 +223,8 @@ static void createState(bool on, bool all) {
 		fullState = on ? 1 : 2; //ON -> 1 //OFF -> 2
 	}
 	
+	logprintf(LOG_DEBUG, "rev_v5:sending state value '%d'", fullState);
+
 	length = decToBinRev(fullState, binary);
 	for(i=0;i<=length;i++) {
 		if(binary[i]==1) {
