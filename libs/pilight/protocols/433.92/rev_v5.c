@@ -129,8 +129,8 @@ static void createLow(int s, int e) {
 	int i;
 
 	for(i=s;i<=e;i+=4) {
-		rev5_switch->raw[i+1]=(PULSE_MULTIPLIER*AVG_PULSE_LENGTH); //long pulse for rev_v5
-		rev5_switch->raw[i]=(AVG_PULSE_LENGTH);                    //short pause for rev_v5
+		rev5_switch->raw[i]=(PULSE_MULTIPLIER*AVG_PULSE_LENGTH); //long pulse for rev_v5
+		rev5_switch->raw[i+1]=(AVG_PULSE_LENGTH);                    //short pause for rev_v5
 		rev5_switch->raw[i+2]=(PULSE_MULTIPLIER*AVG_PULSE_LENGTH);
 		rev5_switch->raw[i+3]=(AVG_PULSE_LENGTH);
 	}
