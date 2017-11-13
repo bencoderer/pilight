@@ -16,6 +16,37 @@
 	along with pilight. If not, see	<http://www.gnu.org/licenses/>
 */
 
+/*
+  REV v5 protocol structure
+  FIRST
+   1        ID (LSB)
+   2        ID 
+   3        ID
+   4        ID
+   5        UNIT (LSB)
+   6        -- OFF ---
+   7        AREABIT
+   8        UNIT (MSB)
+   9        STATE (LSB)
+  10        STATE (MSB)
+  11        --- ON ---
+  12        --- ON ---
+  LAST
+
+  STATE
+	0 => ALL in area ON
+	1 => UNIT        ON
+	2 => UNIT        OFF
+	3 => ALL in area OFF
+
+  AREABIT
+	for Unit 0-3 the AREABIT is not set
+	for Unit 4-7 the AREABIT is set
+	Areabit is used to identify the units when the ALL state is used
+	  units 0-3 (bit=0)
+	  units 4-7 (bit=1)
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,12 +63,14 @@
 
 #define PULSE_MULTIPLIER	3
 #define NORMAL_REPEATS		10
-#define MIN_PULSE_LENGTH	300 //425
-#define MAX_PULSE_LENGTH	610 //445
+#define MIN_PULSE_LENGTH	300 //425 //TODO define better MIN value
+#define MAX_PULSE_LENGTH	610 //445 //TODO define better MAX value
 #define AVG_PULSE_LENGTH	433
-#define RAW_LENGTH				50
+#define RAW_LENGTH			50
 
-static char idLetters[16] = {"ABIJCDGLKHOPEFMN"}; //A-P  //TODO !!!check if G and K is correct
+#define ID_COUNT            16
+
+static char idLetters[ID_COUNT] = {"ABIJCDKLGHOPEFMN"}; //A-P
 
 static int validate(void) {
 	if(rev5_switch->rawlen == RAW_LENGTH) {
@@ -69,7 +102,7 @@ static void createMessage(int id, int unit, int state, int all) {
 
 static void parseCode(void) {
 	int x = 0, i = 0, binary[RAW_LENGTH/4];
-    int binaryUnit[3];
+    int binaryUnit[2];
 
 	if(rev5_switch->rawlen>RAW_LENGTH) {
 		logprintf(LOG_ERR, "rev5_switch: parsecode - invalid parameter passed %d", rev5_switch->rawlen);
@@ -87,15 +120,21 @@ static void parseCode(void) {
 
 	binaryUnit[0] = binary[4];
 	binaryUnit[1] = binary[7];
-	binaryUnit[2] = binary[6];
+	int areabit = binary[6];
 
-	int unit = binToDec(binaryUnit, 0, 2);
-	int rawState = binToDec(binary, 8, 9);
 	int id = binToDec(binary, 0, 3);
+	int unit = binToDec(binaryUnit, 0, 1);
+	if (areabit > 0) {
+		//areabit does group units in 0-3 / 4-7
+		unit += 4;
+	}
+
+	int rawState = binToDec(binary, 8, 9);
 
 	int state = 0;
 	int all = 0;
 
+	//see createState()
 	if (rawState == 1) {
 		state = 1; //on
 		all = 0;
@@ -113,10 +152,11 @@ static void parseCode(void) {
 		all = 1;
 	}
 
-	unit++;
-
 	if (all > 0) {
-		if (unit >= 5) {
+        //contact all units in group 1
+
+		if (areabit > 0) {
+			//contact all units in group 2
 			all++;
 		}
 	}
@@ -156,12 +196,14 @@ static void clearCode(void) {
 static int createIdFromLetter(int l) {
 	int i=0;
 
-	for(i=0;i<(16-1);i++) {
+	for(i=0;i<(ID_COUNT-1);i++) {
 		if((int)idLetters[i] == l) { //lookup the position of the char
             return i;
 		}
 	}
-        return -1;
+
+	//Char not found
+    return -1;
 }
 
 static void createId(int id) {
@@ -182,7 +224,7 @@ static void createId(int id) {
 static int generateUnitValue(int unit, int areabit) {
 	const int UNITMSBMASK = 0x02;
 	const int UNITLSBMASK = 0x01;
-	int result = unit-1; //unit 1 is int value 0
+	int result = unit;
 	int unitMsb = (result & UNITMSBMASK) << 2;
 	areabit = areabit << 2;
 	result = result & UNITLSBMASK;
@@ -197,7 +239,7 @@ static void createUnit(int unit) {
 	int length = 0;
 	int i=0, x=0;
 
-	logprintf(LOG_INFO, "rev_v5:sending unit value '%d'", unit);
+	//logprintf(LOG_INFO, "rev_v5:sending unit value '%d'", unit);
 
 	length = decToBinRev(unit, binary);
 	for(i=0;i<=length;i++) {
@@ -223,11 +265,9 @@ static void createState(bool on, bool all) {
 		rawState = on ? 1 : 2; //ON -> 1 //OFF -> 2
 	}
 	
-	
-
 	length = decToBinRev(rawState, binary);
 
-	logprintf(LOG_INFO, "rev_v5:sending state value '%d', bit-length:%d", rawState, length);
+	//logprintf(LOG_INFO, "rev_v5:sending state value '%d', bit-length:%d", rawState, length);
 
 	for(i=0;i<=length;i++) {
 		if(binary[i]==1) {
@@ -289,25 +329,25 @@ static int createCode(struct JsonNode *code) {
 	if((id == -1) || (state == -1) || (unit == -1 && all == 0)) { //id is not set, state is not set, neither unit nor all is set
 		logprintf(LOG_ERR, "rev5_switch: insufficient number of arguments");
 		return EXIT_FAILURE;
-	} else if(id > (16-1) || id < 0) {
+	} else if(id > (ID_COUNT-1) || id < 0) {
 		logprintf(LOG_ERR, "rev5_switch: invalid id range");
 		return EXIT_FAILURE;
 	} else if(unit > -1 && all > 0) {
 		logprintf(LOG_ERR, "rev5_switch: only unit-parameter or all-parameter can be specified");
 		return EXIT_FAILURE;
-	} else if((unit > 8 || unit < 1) && (all == 0)) {
+	} else if((unit > 7 || unit < 0) && (all == 0)) {
 		logprintf(LOG_ERR, "rev5_switch: invalid unit range");
 		return EXIT_FAILURE;
 	} else if((unit == -1) && (all > 2 || (all < 1))) {
-		logprintf(LOG_ERR, "rev5_switch: invalid all value (use 1 for units 1-4 and 2 for units 5-8)");
+		logprintf(LOG_ERR, "rev5_switch: invalid all value (use 1 for units 0-3 and 2 for units 4-7)");
 		return EXIT_FAILURE;
 	}
 	else {
-		if (unit > 0)
-			areabit = (unit > 4) ? 1 : 0; 
+		if (unit >= 0)
+			areabit = (unit > 3) ? 1 : 0; 
 			
 		if(all > 0) {
-			unit = 1;
+			unit = 0; //broadcast uses first device per group
 			areabit = all-1;
 		}
 
@@ -351,8 +391,8 @@ void rev5Init(void) {
 
 	options_add(&rev5_switch->options, 't', "on", OPTION_NO_VALUE, DEVICES_STATE, JSON_STRING, NULL, NULL);
 	options_add(&rev5_switch->options, 'f', "off", OPTION_NO_VALUE, DEVICES_STATE, JSON_STRING, NULL, NULL);
-	options_add(&rev5_switch->options, 'u', "unit", OPTION_HAS_VALUE, DEVICES_ID, JSON_NUMBER, NULL, "^([1-8])$");
-	options_add(&rev5_switch->options, 'i', "id", OPTION_HAS_VALUE, DEVICES_ID, JSON_NUMBER, NULL, "^(6[0123]|[12345][0-9]|[0-9]{1})$");
+	options_add(&rev5_switch->options, 'u', "unit", OPTION_HAS_VALUE, DEVICES_ID, JSON_NUMBER, NULL, "^([0-7])$");
+	options_add(&rev5_switch->options, 'i', "id", OPTION_HAS_VALUE, DEVICES_ID, JSON_STRING, NULL, "^(A-P|1[0-5]|[0-9])$");
 	options_add(&rev5_switch->options, 'a', "all", OPTION_HAS_VALUE, 0, JSON_NUMBER, NULL, "^([1-2])$");
 
 	options_add(&rev5_switch->options, 0, "readonly", OPTION_HAS_VALUE, GUI_SETTING, JSON_NUMBER, (void *)0, "^[10]{1}$");
