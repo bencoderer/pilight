@@ -197,7 +197,7 @@ static void createUnit(int unit) {
 	int length = 0;
 	int i=0, x=0;
 
-	logprintf(LOG_DEBUG, "rev_v5:sending unit value '%d'", unit);
+	logprintf(LOG_INFO, "rev_v5:sending unit value '%d'", unit);
 
 	length = decToBinRev(unit, binary);
 	for(i=0;i<=length;i++) {
@@ -223,9 +223,12 @@ static void createState(bool on, bool all) {
 		fullState = on ? 1 : 2; //ON -> 1 //OFF -> 2
 	}
 	
-	logprintf(LOG_DEBUG, "rev_v5:sending state value '%d'", fullState);
+	
 
 	length = decToBinRev(fullState, binary);
+
+	logprintf(LOG_INFO, "rev_v5:sending state value '%d', bit-length:%d", fullState, length);
+
 	for(i=0;i<=length;i++) {
 		if(binary[i]==1) {
 			x=i*4;
@@ -234,6 +237,11 @@ static void createState(bool on, bool all) {
 	}
 }
 
+static void createPostfix(void) {
+	//the last 2 bits are always set
+	createHigh(40, 40+3); 
+	createHigh(44, 44+3); 
+}
 
 static void createFooter(void) {
 	//copied from rev_v3.c
@@ -308,6 +316,7 @@ static int createCode(struct JsonNode *code) {
 		createId(id);
 		createUnit(generateUnitValue(unit, areabit));
 		createState(state > 0, all > 0);
+		createPostfix();
 		createFooter();
 		rev5_switch->rawlen = RAW_LENGTH;
 	}
