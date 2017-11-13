@@ -214,20 +214,20 @@ static void createState(bool on, bool all) {
 	int binary[255];
 	int length = 0;
 	int i=0, x=0;
-        bool fullState;
+    int rawState;
 
 	if(all) {
-		fullState = on ? 0 : 3; //ALL-ON -> 0 //ALL-OFF -> 3
+		rawState = on ? 0 : 3; //ALL-ON -> 0 //ALL-OFF -> 3
 	}
 	else {
-		fullState = on ? 1 : 2; //ON -> 1 //OFF -> 2
+		rawState = on ? 1 : 2; //ON -> 1 //OFF -> 2
 	}
 	
 	
 
-	length = decToBinRev(fullState, binary);
+	length = decToBinRev(rawState, binary);
 
-	logprintf(LOG_INFO, "rev_v5:sending state value '%d', bit-length:%d", fullState, length);
+	logprintf(LOG_INFO, "rev_v5:sending state value '%d', bit-length:%d", rawState, length);
 
 	for(i=0;i<=length;i++) {
 		if(binary[i]==1) {
