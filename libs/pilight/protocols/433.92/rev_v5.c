@@ -182,7 +182,7 @@ static void createId(int id) {
 static int generateUnitValue(int unit, int areabit) {
 	const int UNITMSBMASK = 0x02;
 	const int UNITLSBMASK = 0x01;
-	int result = unit;
+	int result = unit-1; //unit 1 is int value 0
 	int unitMsb = (result & UNITMSBMASK) << 2;
 	areabit = areabit << 2;
 	result = result & UNITLSBMASK;
@@ -319,6 +319,8 @@ static int createCode(struct JsonNode *code) {
 		createPostfix();
 		createFooter();
 		rev5_switch->rawlen = RAW_LENGTH;
+
+		logprintf(LOG_INFO, "rev5_switch: send raw %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",rev5_switch->raw[0], rev5_switch->raw[1], rev5_switch->raw[2], rev5_switch->raw[3], rev5_switch->raw[4], rev5_switch->raw[5], rev5_switch->raw[6], rev5_switch->raw[7], rev5_switch->raw[8], rev5_switch->raw[9], rev5_switch->raw[10], rev5_switch->raw[11], rev5_switch->raw[12], rev5_switch->raw[13], rev5_switch->raw[14], rev5_switch->raw[15], rev5_switch->raw[16], rev5_switch->raw[17], rev5_switch->raw[18], rev5_switch->raw[19], rev5_switch->raw[20], rev5_switch->raw[21], rev5_switch->raw[22], rev5_switch->raw[23], rev5_switch->raw[24], rev5_switch->raw[25], rev5_switch->raw[26], rev5_switch->raw[27], rev5_switch->raw[28], rev5_switch->raw[29], rev5_switch->raw[30], rev5_switch->raw[31], rev5_switch->raw[32], rev5_switch->raw[33], rev5_switch->raw[34], rev5_switch->raw[35], rev5_switch->raw[36], rev5_switch->raw[37], rev5_switch->raw[38], rev5_switch->raw[39], rev5_switch->raw[40], rev5_switch->raw[41], rev5_switch->raw[42], rev5_switch->raw[43], rev5_switch->raw[44], rev5_switch->raw[45], rev5_switch->raw[46], rev5_switch->raw[47], rev5_switch->raw[48], rev5_switch->raw[49]);
 	}
 	return EXIT_SUCCESS;
 }
