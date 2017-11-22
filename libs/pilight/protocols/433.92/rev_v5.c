@@ -1,50 +1,40 @@
 /*
-	Copyright (C) 2014 CurlyMo & wo-rasp
+	Copyright (C) 2017 bencoderer
 
-	This file is part of pilight.
-
-	pilight is free software: you can redistribute it and/or modify it under the
-	terms of the GNU General Public License as published by the Free Software
-	Foundation, either version 3 of the License, or (at your option) any later
-	version.
-
-	pilight is distributed in the hope that it will be useful, but WITHOUT ANY
-	WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-	A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with pilight. If not, see	<http://www.gnu.org/licenses/>
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
 /*
-  REV v5 protocol structure
-  FIRST
-   1        ID (LSB)
-   2        ID 
-   3        ID
-   4        ID
-   5        UNIT (LSB)
-   6        -- OFF ---
-   7        AREABIT
-   8        UNIT (MSB)
-   9        STATE (LSB)
-  10        STATE (MSB)
-  11        --- ON ---
-  12        --- ON ---
-  LAST
+REV v5 protocol structure
+FIRSTBIT
+	1		ID (LSB)
+	2		ID 
+	3		ID
+	4		ID
+	5		UNIT (LSB)
+	6		-- ZERO ---
+	7		AREABIT
+	8		UNIT (MSB)
+	9		STATE (LSB)
+	10		STATE (MSB)
+	11		--- ONE ---
+	12		--- ONE ---
+LASTBIT
 
-  STATE
+STATE
 	0 => ALL in area ON
 	1 => UNIT        ON
 	2 => UNIT        OFF
 	3 => ALL in area OFF
 
-  AREABIT
+AREABIT
 	for Unit 0-3 the AREABIT is not set
 	for Unit 4-7 the AREABIT is set
 	Areabit is used to identify the units when the ALL state is used
-	  units 0-3 (bit=0)
-	  units 4-7 (bit=1)
+		units 0-3 (bit=0)
+		units 4-7 (bit=1)
 */
 
 #include <stdio.h>
@@ -102,7 +92,11 @@ static void createMessage(int id, int unit, int state, int all) {
 
 static void parseCode(void) {
 	int x = 0, i = 0, binary[RAW_LENGTH/4];
-    int binaryUnit[2];
+	int binaryUnit[2];
+	int id = ; int unit = 0;
+	int areabit = 0;
+	int rawState = 0; int state = 0;
+	int all = 0;
 
 	if(rev5_switch->rawlen>RAW_LENGTH) {
 		logprintf(LOG_ERR, "rev5_switch: parsecode - invalid parameter passed %d", rev5_switch->rawlen);
@@ -120,19 +114,16 @@ static void parseCode(void) {
 
 	binaryUnit[0] = binary[4];
 	binaryUnit[1] = binary[7];
-	int areabit = binary[6];
+	areabit = binary[6];
 
-	int id = binToDec(binary, 0, 3);
-	int unit = binToDec(binaryUnit, 0, 1);
+	id = binToDec(binary, 0, 3);
+	unit = binToDec(binaryUnit, 0, 1);
 	if (areabit > 0) {
 		//areabit does group units in 0-3 / 4-7
 		unit += 4;
 	}
 
-	int rawState = binToDec(binary, 8, 9);
-
-	int state = 0;
-	int all = 0;
+	rawState = binToDec(binary, 8, 9);
 
 	//see createState()
 	if (rawState == 1) {
@@ -153,10 +144,10 @@ static void parseCode(void) {
 	}
 
 	if (all > 0) {
-        //contact all units in group 1
+        //switch all units in group 1
 
 		if (areabit > 0) {
-			//contact all units in group 2
+			//switch all units in group 2
 			all++;
 		}
 	}
@@ -224,11 +215,12 @@ static void createId(int id) {
 static int generateUnitValue(int unit, int areabit) {
 	const int UNITMSBMASK = 0x02;
 	const int UNITLSBMASK = 0x01;
-	int result = unit;
-	int unitMsb = (result & UNITMSBMASK) << 2;
+	int result = 0;
+	int unitMsb = (unit & UNITMSBMASK) << 2;
+
 	areabit = areabit << 2;
-	result = result & UNITLSBMASK;
-	result = result | /*2nd bit is always 0 |*/ areabit | unitMsb;
+			  /*1st*/        /*2nd*/               /*3rd*/        /*4th*/
+	result =  unitMsb | /*2nd bit is always 0 |*/ areabit | (unit & UNITLSBMASK));
 
 	return result;
 }
@@ -292,12 +284,12 @@ static void createFooter(void) {
 static int createCode(struct JsonNode *code) {
 	char sId[4] = {'\0'};
 	char *stmp = NULL;
+	double itmp = -1;
 	int id = -1;
 	int unit = -1;
 	int state = -1;
 	int all = 0;
 	int areabit = 0;
-	double itmp = -1;
 
 	strcpy(sId, "-1");
 
@@ -360,7 +352,8 @@ static int createCode(struct JsonNode *code) {
 		createFooter();
 		rev5_switch->rawlen = RAW_LENGTH;
 
-		logprintf(LOG_INFO, "rev5_switch: send raw %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",rev5_switch->raw[0], rev5_switch->raw[1], rev5_switch->raw[2], rev5_switch->raw[3], rev5_switch->raw[4], rev5_switch->raw[5], rev5_switch->raw[6], rev5_switch->raw[7], rev5_switch->raw[8], rev5_switch->raw[9], rev5_switch->raw[10], rev5_switch->raw[11], rev5_switch->raw[12], rev5_switch->raw[13], rev5_switch->raw[14], rev5_switch->raw[15], rev5_switch->raw[16], rev5_switch->raw[17], rev5_switch->raw[18], rev5_switch->raw[19], rev5_switch->raw[20], rev5_switch->raw[21], rev5_switch->raw[22], rev5_switch->raw[23], rev5_switch->raw[24], rev5_switch->raw[25], rev5_switch->raw[26], rev5_switch->raw[27], rev5_switch->raw[28], rev5_switch->raw[29], rev5_switch->raw[30], rev5_switch->raw[31], rev5_switch->raw[32], rev5_switch->raw[33], rev5_switch->raw[34], rev5_switch->raw[35], rev5_switch->raw[36], rev5_switch->raw[37], rev5_switch->raw[38], rev5_switch->raw[39], rev5_switch->raw[40], rev5_switch->raw[41], rev5_switch->raw[42], rev5_switch->raw[43], rev5_switch->raw[44], rev5_switch->raw[45], rev5_switch->raw[46], rev5_switch->raw[47], rev5_switch->raw[48], rev5_switch->raw[49]);
+		//for protocol DEBUGGING
+		//logprintf(LOG_INFO, "rev5_switch: send raw %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",rev5_switch->raw[0], rev5_switch->raw[1], rev5_switch->raw[2], rev5_switch->raw[3], rev5_switch->raw[4], rev5_switch->raw[5], rev5_switch->raw[6], rev5_switch->raw[7], rev5_switch->raw[8], rev5_switch->raw[9], rev5_switch->raw[10], rev5_switch->raw[11], rev5_switch->raw[12], rev5_switch->raw[13], rev5_switch->raw[14], rev5_switch->raw[15], rev5_switch->raw[16], rev5_switch->raw[17], rev5_switch->raw[18], rev5_switch->raw[19], rev5_switch->raw[20], rev5_switch->raw[21], rev5_switch->raw[22], rev5_switch->raw[23], rev5_switch->raw[24], rev5_switch->raw[25], rev5_switch->raw[26], rev5_switch->raw[27], rev5_switch->raw[28], rev5_switch->raw[29], rev5_switch->raw[30], rev5_switch->raw[31], rev5_switch->raw[32], rev5_switch->raw[33], rev5_switch->raw[34], rev5_switch->raw[35], rev5_switch->raw[36], rev5_switch->raw[37], rev5_switch->raw[38], rev5_switch->raw[39], rev5_switch->raw[40], rev5_switch->raw[41], rev5_switch->raw[42], rev5_switch->raw[43], rev5_switch->raw[44], rev5_switch->raw[45], rev5_switch->raw[46], rev5_switch->raw[47], rev5_switch->raw[48], rev5_switch->raw[49]);
 	}
 	return EXIT_SUCCESS;
 }
