@@ -53,12 +53,12 @@ AREABIT
 
 #define PULSE_MULTIPLIER	3
 #define NORMAL_REPEATS		10
-#define MIN_PULSE_LENGTH	300 //425 //TODO define better MIN value
-#define MAX_PULSE_LENGTH	610 //445 //TODO define better MAX value
-#define AVG_PULSE_LENGTH	433
-#define RAW_LENGTH			50
+#define MIN_PULSE_LENGTH	410
+#define MAX_PULSE_LENGTH	490
+#define AVG_PULSE_LENGTH	400
+#define RAW_LENGTH		50
 
-#define ID_COUNT            16
+#define ID_COUNT            	16
 
 static char idLetters[ID_COUNT] = {"ABIJCDKLGHOPEFMN"}; //A-P
 
