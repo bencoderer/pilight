@@ -93,7 +93,7 @@ static void createMessage(int id, int unit, int state, int all) {
 static void parseCode(void) {
 	int x = 0, i = 0, binary[RAW_LENGTH/4];
 	int binaryUnit[2];
-	int id = ; int unit = 0;
+	int id = 0; int unit = 0;
 	int areabit = 0;
 	int rawState = 0; int state = 0;
 	int all = 0;
@@ -220,7 +220,7 @@ static int generateUnitValue(int unit, int areabit) {
 
 	areabit = areabit << 2;
 			  /*1st*/        /*2nd*/               /*3rd*/        /*4th*/
-	result =  unitMsb | /*2nd bit is always 0 |*/ areabit | (unit & UNITLSBMASK));
+	result =  unitMsb | /*2nd bit is always 0 |*/ areabit | (unit & UNITLSBMASK);
 
 	return result;
 }
