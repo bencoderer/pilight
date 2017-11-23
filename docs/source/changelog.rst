@@ -1,7 +1,49 @@
 Changelog
 =========
 
+.. versionadded:: 8.0.3
+
+.. rubric:: Bugfixes
+
+- webgui labels are word-wrapped into multiple lines on small screens
+- webgui takes ``stats-enable`` into account by hiding CPU stats
+- memory usage statistics has been removed because they were unreliable
+- arctech_dimmer signals sent by pilight are now correctly received by pilight as well
+
+.. rubric:: webserver, mail and http library
+
+At this moment the https, mail, and webserver module and the full ``pilight-sha256`` program has been backported from rewrite. The asynchronous I/O library libuv has been added as well as the new SSL and eventpool module. The openweathermap and weather underground protocols have been adapted to use this new code as well as the pushbullet and pushover event actions.
+
+- pilight now supports a HTTPS webserver which can be configured in the settings:
+
+   .. code-block:: json
+
+      { "webserver-https-port": 5002 }
+
+- pilight also stopped detecting if the mailserver you have configures requires an SSL connection. To tell pilight about the SSL requirement of a mail server a new setting has been added. Servers that switch from a plain connection to SSL require a 0 value here:
+
+   .. code-block:: json
+
+      { "smtp-ssl": 1 }
+
+.. versionadded:: 8.0.2
+
+.. rubric:: Bugfixes
+
+- wiringX log was scrambled
+
+.. versionadded:: 8.0.1
+
+.. rubric:: Bugfixes
+
+- gpio_switch protocol that stops working after a while
+- pilight not starting at boottime
+
 .. versionadded:: 8.0
+
+.. note::
+
+   Not all changes from development where ported to stable. Especially the rules can break when upgraded from the latest development to the latest stable. Porting the new eventing code is in the planning real soon, but until then, just stick with development.
 
 .. rubric:: Breaking changes
 
