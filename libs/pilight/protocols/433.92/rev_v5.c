@@ -376,6 +376,7 @@ void rev5Init(void) {
 	protocol_device_add(rev5_switch, "rev5_switch", "Rev Switches v5 (type 8462, ...)");
 	rev5_switch->devtype = SWITCH;
 	rev5_switch->hwtype = RF433;
+	rev5_switch->txrpt = NORMAL_REPEATS;
 	rev5_switch->minrawlen = RAW_LENGTH;
 	rev5_switch->maxrawlen = RAW_LENGTH;
 	rev5_switch->maxgaplen = MAX_PULSE_LENGTH*PULSE_DIV;
