@@ -75,7 +75,10 @@ static int validate(void) {
 
 static void createMessage(int id, int unit, int state, int all) {
 	rev5_switch->message = json_mkobject();
-	json_append_member(rev5_switch->message, "id", json_mkstring(&idLetters[id]));
+        char cId[2] = {0};
+        cId[0] =  idLetters[id];
+
+        json_append_member(rev5_switch->message, "id", json_mkstring(&cId[0]));
 	if(all >= 1) {
 		json_append_member(rev5_switch->message, "all", json_mknumber(all, 0));
 	} else {
