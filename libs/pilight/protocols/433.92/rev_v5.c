@@ -313,6 +313,7 @@ static int createCode(struct JsonNode *code) {
 	
 	if(json_find_number(code, "all", &itmp) == 0) {
 		all = (int)round(itmp);
+		unit = -1;  //force no unit value when the all parameter is specified
 	}
 	
 	if(json_find_number(code, "off", &itmp) == 0) {
@@ -328,9 +329,6 @@ static int createCode(struct JsonNode *code) {
 		return EXIT_FAILURE;
 	} else if(id > (ID_COUNT-1) || id < 0) {
 		logprintf(LOG_ERR, "rev5_switch: invalid id range");
-		return EXIT_FAILURE;
-	} else if(unit > -1 && all > 0) {
-		logprintf(LOG_ERR, "rev5_switch: only unit-parameter or all-parameter can be specified");
 		return EXIT_FAILURE;
 	} else if((unit > 7 || unit < 0) && (all == 0)) {
 		logprintf(LOG_ERR, "rev5_switch: invalid unit range");
