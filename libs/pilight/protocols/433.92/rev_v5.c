@@ -384,9 +384,9 @@ void rev5Init(void) {
 
 	options_add(&rev5_switch->options, 't', "on", OPTION_NO_VALUE, DEVICES_STATE, JSON_STRING, NULL, NULL);
 	options_add(&rev5_switch->options, 'f', "off", OPTION_NO_VALUE, DEVICES_STATE, JSON_STRING, NULL, NULL);
-	options_add(&rev5_switch->options, 'u', "unit", OPTION_OPT_VALUE, DEVICES_ID, JSON_NUMBER, NULL, "^([0-7])$");
+	options_add(&rev5_switch->options, 'u', "unit", OPTION_OPT_VALUE, DEVICES_OPTIONAL, JSON_NUMBER, NULL, "^([0-7])$");
 	options_add(&rev5_switch->options, 'i', "id", OPTION_HAS_VALUE, DEVICES_ID, JSON_STRING, NULL, "^(A-P|1[0-5]|[0-9])$");
-	options_add(&rev5_switch->options, 'a', "all", OPTION_OPT_VALUE, DEVICES_ID, JSON_NUMBER, NULL, "^([1-2])$");
+	options_add(&rev5_switch->options, 'a', "all", OPTION_OPT_VALUE, DEVICES_OPTIONAL, JSON_NUMBER, NULL, "^([1-2])$");
 
 	options_add(&rev5_switch->options, 0, "readonly", OPTION_HAS_VALUE, GUI_SETTING, JSON_NUMBER, (void *)0, "^[10]{1}$");
 	options_add(&rev5_switch->options, 0, "confirm", OPTION_HAS_VALUE, GUI_SETTING, JSON_NUMBER, (void *)0, "^[10]{1}$");
