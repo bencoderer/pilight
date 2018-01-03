@@ -75,7 +75,7 @@ static int validate(void) {
 
 static void createMessage(int id, int unit, int state, int all) {
 	rev5_switch->message = json_mkobject();
-	json_append_member(rev5_switch->message, "id", json_mknumber(id, 0));
+	json_append_member(rev5_switch->message, "id", json_mkstring(&idLetters[id]));
 	if(all >= 1) {
 		json_append_member(rev5_switch->message, "all", json_mknumber(all, 0));
 	} else {
@@ -384,9 +384,9 @@ void rev5Init(void) {
 
 	options_add(&rev5_switch->options, 't', "on", OPTION_NO_VALUE, DEVICES_STATE, JSON_STRING, NULL, NULL);
 	options_add(&rev5_switch->options, 'f', "off", OPTION_NO_VALUE, DEVICES_STATE, JSON_STRING, NULL, NULL);
-	options_add(&rev5_switch->options, 'u', "unit", OPTION_HAS_VALUE, DEVICES_ID, JSON_NUMBER, NULL, "^([0-7])$");
-	options_add(&rev5_switch->options, 'i', "id", OPTION_HAS_VALUE, DEVICES_ID, NULL, NULL, "^(A-P|1[0-5]|[0-9])$");
-	options_add(&rev5_switch->options, 'a', "all", OPTION_HAS_VALUE, 0, JSON_NUMBER, NULL, "^([1-2])$");
+	options_add(&rev5_switch->options, 'u', "unit", OPTION_OPT_VALUE, DEVICES_ID, JSON_NUMBER, NULL, "^([0-7])$");
+	options_add(&rev5_switch->options, 'i', "id", OPTION_HAS_VALUE, DEVICES_ID, JSON_STRING, NULL, "^(A-P|1[0-5]|[0-9])$");
+	options_add(&rev5_switch->options, 'a', "all", OPTION_OPT_VALUE, DEVICES_ID, JSON_NUMBER, NULL, "^([1-2])$");
 
 	options_add(&rev5_switch->options, 0, "readonly", OPTION_HAS_VALUE, GUI_SETTING, JSON_NUMBER, (void *)0, "^[10]{1}$");
 	options_add(&rev5_switch->options, 0, "confirm", OPTION_HAS_VALUE, GUI_SETTING, JSON_NUMBER, (void *)0, "^[10]{1}$");
