@@ -51,14 +51,14 @@ AREABIT
 #include "../../core/gc.h"
 #include "rev_v5.h"
 
-#define PULSE_MULTIPLIER	3
-#define NORMAL_REPEATS		10
-#define MIN_PULSE_LENGTH	410
-#define MAX_PULSE_LENGTH	490
-#define AVG_PULSE_LENGTH	400
-#define RAW_LENGTH		50
+#define PULSE_MULTIPLIER      3
+#define NORMAL_REPEATS       10
+#define MIN_PULSE_LENGTH    410
+#define MAX_PULSE_LENGTH    490
+#define AVG_PULSE_LENGTH    432
+#define RAW_LENGTH           50
 
-#define ID_COUNT            	16
+#define ID_COUNT             16
 
 static char idLetters[ID_COUNT] = {"ABIJCDKLGHOPEFMN"}; //A-P
 
